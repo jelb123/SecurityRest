@@ -1,6 +1,8 @@
 package au.edu.unsw.security;
 
 import java.io.IOException;
+import java.net.URI;
+import java.net.URISyntaxException;
 import java.util.List;
 
 import javax.ws.rs.Consumes;
@@ -18,8 +20,10 @@ import javax.ws.rs.QueryParam;
 import javax.ws.rs.core.Context;
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Request;
+import javax.ws.rs.core.Response;
 import javax.ws.rs.core.UriInfo;
 
+import au.edu.unsw.security.dao.SecurityDAO;
 import au.edu.unsw.security.dao.support.SecurityDAOImpl;
 import au.edu.unsw.security.model.Expert;
 
@@ -31,7 +35,7 @@ import au.edu.unsw.security.model.Expert;
  *
  */
 
-@Path("/jobPostings")
+@Path("/ExpertService")
 public class SecurityService {
 	// Allows to insert contextual objects into the class, 
 	// e.g. ServletContext, Request, Response, UriInfo
@@ -43,30 +47,30 @@ public class SecurityService {
 	@GET
 	@Path("setUpDatabase")
 	public void setUpDatabase() {
-		SecurityDAOImpl jobsDAO = new SecurityDAOImpl();
-		jobsDAO.setUpDatabase();
+		SecurityDAO securityDAO = new SecurityDAOImpl();
+		securityDAO.setUpDatabase();
 	}
 	
 	
 	@GET
 	@Produces(MediaType.APPLICATION_JSON)
-	public List<Expert> getAllExperts() throws IOException {
-		SecurityDAOImpl securityDAO = new SecurityDAOImpl();
+	public Response getAllExperts() throws IOException {
+		SecurityDAO securityDAO = new SecurityDAOImpl();
 		
 		List<Expert> expertList = securityDAO.getAllExperts();
-		return expertList;
+		return Response.ok().entity(expertList).build();
 	}
 	
 	@GET
 	@Path("{expertID}")
 	@Produces(MediaType.APPLICATION_JSON)
-	public Expert getJobById(@PathParam("expertID") String idString) throws IOException {
+	public Response getExpertById(@PathParam("expertID") String idString) throws IOException {
 		int expertID = Integer.parseInt(idString);
 		
-		SecurityDAOImpl securityDAO = new SecurityDAOImpl();
+		SecurityDAO securityDAO = new SecurityDAOImpl();
 		Expert expert = securityDAO.getExpertById(expertID);
 		
-		return expert;
+		return Response.ok().entity(expert).build();
 		
 	}
 	
@@ -76,7 +80,7 @@ public class SecurityService {
 	@Path("expertSearch")
 	@Consumes(MediaType.TEXT_PLAIN)
 	@Produces(MediaType.APPLICATION_JSON)
-	public List<Expert> searchJobs(
+	public Response searchExperts(
 			@DefaultValue("") @QueryParam("expertName") String name,
 			@DefaultValue("") @QueryParam("email") String email,
 			@DefaultValue("") @QueryParam("education") String education,
@@ -92,11 +96,52 @@ public class SecurityService {
 		expert.setExperience(experience);
 		expert.setSkills(skills);
 		
-		SecurityDAOImpl securityDAO = new SecurityDAOImpl();
+		SecurityDAO securityDAO = new SecurityDAOImpl();
 		List<Expert> expertSearchResults = securityDAO.getExpertsBySearch(expert);
 		
+		return Response.ok().entity(expertSearchResults).build();
+	}
+	
+	@POST
+	@Consumes(MediaType.APPLICATION_JSON)
+	@Produces(MediaType.TEXT_PLAIN)
+	public Response createExpert(Expert expert) throws IOException, URISyntaxException {
+		SecurityDAO securityDAO = new SecurityDAOImpl();
+		int expertId = securityDAO.insertExpert(expert);
+		return Response.created(new URI(uriInfo.getBaseUri() + "ExpertService/" + expertId)).entity("The created experts ID is " + expertId).build();
+	}
+	
+	@PUT
+	@Path("{expertID}")
+	@Consumes(MediaType.APPLICATION_JSON)
+	@Produces(MediaType.APPLICATION_JSON)
+	public Response updateExpertData(@PathParam("expertID") int expertId, Expert updatedExpertData) {
+		SecurityDAO securityDAO = new SecurityDAOImpl();
+		Expert updatedExpert = null;
 		
-		return expertSearchResults;
+		updatedExpertData.setId(expertId);
+		updatedExpert = securityDAO.updateExpertData(updatedExpertData);
+		
+		return Response.ok().entity(updatedExpert).build();
+	}
+	
+	@GET
+	@Path("expertFilter")
+	@Consumes(MediaType.TEXT_PLAIN)
+	@Produces(MediaType.APPLICATION_JSON)
+	public Response filterExperts(
+			@DefaultValue("0") @QueryParam("minRank") int minRank,
+			@DefaultValue("-1") @QueryParam("maxRank") int maxRank,
+			@DefaultValue("0") @QueryParam("minRep") int minRep,
+			@DefaultValue("-1") @QueryParam("maxRep") int maxRep,
+			@DefaultValue("0") @QueryParam("minQuality") float minQuality,
+			@DefaultValue("-1") @QueryParam("maxQuality") float maxQuality) {
+
+		
+		SecurityDAO securityDAO = new SecurityDAOImpl();
+		List<Expert> expertFilterResults = securityDAO.getExpertsByFilter(minRank, maxRank, minRep, maxRep, minQuality, maxQuality);
+		
+		return Response.ok().entity(expertFilterResults).build();
 	}
 	
 }
