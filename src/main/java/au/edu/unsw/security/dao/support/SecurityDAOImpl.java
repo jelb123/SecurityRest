@@ -12,6 +12,7 @@ public class SecurityDAOImpl implements SecurityDAO {
 	public SecurityDAOImpl() {
 	}
 	
+	@Override
 	public void setUpDatabase () {
 		Connection c = null;
 	    Statement stmt = null;
@@ -21,6 +22,8 @@ public class SecurityDAOImpl implements SecurityDAO {
 	      System.out.println("Opened database successfully");
 
 	      stmt = c.createStatement();
+	      
+	      // If table isnt already in the database, create it
 	      String sql = "CREATE TABLE IF NOT EXISTS SECURITYEXPERTS " +
 	                   "(ID INTEGER PRIMARY KEY	AUTOINCREMENT NOT NULL," +
 	                   " COBALTLINK        	TEXT    NOT NULL, " + 
@@ -91,7 +94,11 @@ public class SecurityDAOImpl implements SecurityDAO {
 	    System.out.println("Records created successfully");
 	    return maxExpertId();
 	}
-
+	
+	/**
+	 * Retrieves the Id of the last expert added into the database
+	 * @return the largest id
+	 */
 	private int maxExpertId() {
 		Connection c = null;
 		Statement stmt = null;
@@ -282,6 +289,7 @@ public class SecurityDAOImpl implements SecurityDAO {
 	public Expert updateExpertData(Expert updatedExpertData) {
 		Expert expert = getExpertById(updatedExpertData.getId());
 		
+		// Checks whether these fields need to be updated before setting them.
 		if(updatedExpertData.getCobaltLink() != null) {
 			expert.setCobaltLink(updatedExpertData.getCobaltLink());
 		}
@@ -346,6 +354,7 @@ public class SecurityDAOImpl implements SecurityDAO {
 	    	c.setAutoCommit(false);
 		    System.out.println("Opened database successfully");
 		
+		    //Update the experts row in the database with the new data
 		    stmt = c.prepareStatement("UPDATE SECURITYEXPERTS "
 	    		+ "SET COBALTLINK = ?, NAME = ?, EMAIL = ?, NATIONALITY = ?, "
 	    		+ "EDUCATION = ?, EXPERIENCE = ?, SKILLS = ?, LINKEDIN = ?, "
@@ -385,7 +394,10 @@ public class SecurityDAOImpl implements SecurityDAO {
 	    return expert;
 	}
 
-	
+	/**
+	 * Gets the highest Cobalt Rank in the database
+	 * @return the highest cobalt rank
+	 */
 	private int maxCobaltRank() {
 		Connection c = null;
 		Statement stmt = null;
@@ -414,6 +426,10 @@ public class SecurityDAOImpl implements SecurityDAO {
 	    return maxRank;
 	}
 	
+	/**
+	 * Gets the highest Cobalt Reputation from the database
+	 * @return the highest Cobalt Reputation
+	 */
 	private int maxCobaltRep() {
 		Connection c = null;
 		Statement stmt = null;
@@ -442,6 +458,10 @@ public class SecurityDAOImpl implements SecurityDAO {
 	    return maxRep;
 	}
 	
+	/**
+	 * Gets the highest Cobalt Report Quality from the database
+	 * @return the highest Cobalt Report Quality
+	 */
 	private float maxCobaltQuality() {
 		Connection c = null;
 		Statement stmt = null;
@@ -477,6 +497,7 @@ public class SecurityDAOImpl implements SecurityDAO {
 		List<Expert> expertList = new ArrayList<Expert>();
 		Expert expert = null;
 		
+		// Checks whether these were set by the service user
 		if (maxRank == -1) {
 			maxRank = maxCobaltRank();
 		}

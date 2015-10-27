@@ -28,10 +28,7 @@ import au.edu.unsw.security.dao.support.SecurityDAOImpl;
 import au.edu.unsw.security.model.Expert;
 
 /**
- * NEED TO DO:
- * IMPROVE SECURITY OF ALL FUNCTIONS
- * Archiving a job posting - restrict to manager
- * ALSO NEED TO TEST
+ * The java implementation of the Security Expert web service functions 
  *
  */
 
@@ -44,6 +41,10 @@ public class SecurityService {
 	@Context
 	Request request;
 	
+	/**
+	 * This is called to initially set up and initialize the database
+	 * 
+	 */
 	@GET
 	@Path("setUpDatabase")
 	public void setUpDatabase() {
@@ -51,7 +52,11 @@ public class SecurityService {
 		securityDAO.setUpDatabase();
 	}
 	
-	
+	/**
+	 * Retrieves all the security experts that are stored in the databases
+	 * @return a list of all the security experts and their data in a JSON format
+	 * @throws IOException
+	 */
 	@GET
 	@Produces(MediaType.APPLICATION_JSON)
 	public Response getAllExperts() throws IOException {
@@ -61,11 +66,16 @@ public class SecurityService {
 		return Response.ok().entity(expertList).build();
 	}
 	
+	/**
+	 * Retrieves the data of the security expert whose id was specified 
+	 * @param expertID the id of the expert needed
+	 * @return The security experts data in JSON Format
+	 * @throws IOException
+	 */
 	@GET
 	@Path("{expertID}")
 	@Produces(MediaType.APPLICATION_JSON)
-	public Response getExpertById(@PathParam("expertID") String idString) throws IOException {
-		int expertID = Integer.parseInt(idString);
+	public Response getExpertById(@PathParam("expertID") int expertID) throws IOException {
 		
 		SecurityDAO securityDAO = new SecurityDAOImpl();
 		Expert expert = securityDAO.getExpertById(expertID);
@@ -74,8 +84,16 @@ public class SecurityService {
 		
 	}
 	
-	
-	// Can Search using jobName, position, location, status
+	/**
+	 * A Search function to find all the experts which fit the needed criteria
+	 * @param name the name of the expert
+	 * @param email the experts email
+	 * @param education the education which the expert has
+	 * @param nationality the nationality of the expert
+	 * @param experience past experience which the expert might have had
+	 * @param skills the skills which the expert has
+	 * @return A list of all the security experts which fit the criteria
+	 */
 	@GET
 	@Path("expertSearch")
 	@Consumes(MediaType.TEXT_PLAIN)
@@ -102,15 +120,29 @@ public class SecurityService {
 		return Response.ok().entity(expertSearchResults).build();
 	}
 	
+	/**
+	 * Create and insert an expert into the database
+	 * @param expert The complete expert to be added into the database (this is automatically converted from the json representation when it is passed in)
+	 * @return The location where the expert data can be retrieved from in the response header, and a string containing the experts id in the response body
+	 * @throws IOException
+	 * @throws URISyntaxException
+	 */
 	@POST
 	@Consumes(MediaType.APPLICATION_JSON)
 	@Produces(MediaType.TEXT_PLAIN)
-	public Response createExpert(Expert expert) throws IOException, URISyntaxException {
+	public Response insertExpert(Expert expert) throws IOException, URISyntaxException {
 		SecurityDAO securityDAO = new SecurityDAOImpl();
 		int expertId = securityDAO.insertExpert(expert);
 		return Response.created(new URI(uriInfo.getBaseUri() + "ExpertService/" + expertId)).entity("The created experts ID is " + expertId).build();
 	}
 	
+	/**
+	 * Update an expert profile which is already in the database 
+	 * @param expertId the id of the expert to be created
+	 * @param updatedExpertData a bean of the expert containing the fields that need to be updated
+	 * @return the data of the updated expert if expert exists
+	 */
+
 	@PUT
 	@Path("{expertID}")
 	@Consumes(MediaType.APPLICATION_JSON)
@@ -119,12 +151,25 @@ public class SecurityService {
 		SecurityDAO securityDAO = new SecurityDAOImpl();
 		Expert updatedExpert = null;
 		
-		updatedExpertData.setId(expertId);
-		updatedExpert = securityDAO.updateExpertData(updatedExpertData);
-		
-		return Response.ok().entity(updatedExpert).build();
+		if (securityDAO.getExpertById(expertId) != null) {
+			updatedExpertData.setId(expertId);
+			updatedExpert = securityDAO.updateExpertData(updatedExpertData);
+			return Response.ok().entity(updatedExpert).build();
+		} else {
+			return Response.ok().entity("There is no expert with that id").build();
+		}
 	}
 	
+	/**
+	 * Filters the experts according to the parameter values
+	 * @param minRank the minimum Rank on cobalt.io that the expert should have (i.e 1 for best rank)
+	 * @param maxRank the maximum Rank on cobalt.io that the expert should have 
+	 * @param minRep the minimum reputation on cobalt.io that the expert should have 
+	 * @param maxRep the maximum reputation on cobalt.io that the expert should have
+	 * @param minQuality the minimum report quality on cobalt.io that the expert should have
+	 * @param maxQuality the maximum report quality on cobalt.io that the expert should have
+	 * @return Returns a list of all the security experts which match the filter criteria
+	 */
 	@GET
 	@Path("expertFilter")
 	@Consumes(MediaType.TEXT_PLAIN)

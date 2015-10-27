@@ -2,6 +2,11 @@ package au.edu.unsw.security.model;
 
 import javax.xml.bind.annotation.XmlRootElement;
 
+/**
+ * The Java Bean model for a security expert
+ * @author Group 6
+ *
+ */
 @XmlRootElement
 public class Expert {
 	private int id;

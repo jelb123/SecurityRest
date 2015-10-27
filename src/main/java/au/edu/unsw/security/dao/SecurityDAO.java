@@ -5,7 +5,7 @@ import java.util.List;
 import au.edu.unsw.security.model.Expert;
 
 /**
- * The Data Access Object for jobs
+ * The Data Access Object for the security experts
  *
  */
 public interface SecurityDAO {
