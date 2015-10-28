@@ -1,5 +1,11 @@
 package au.edu.unsw.security.dao.support;
 
+import java.io.BufferedReader;
+import java.io.FileNotFoundException;
+import java.io.FileReader;
+import java.io.IOException;
+import java.io.InputStream;
+import java.net.URL;
 import java.sql.*;
 import java.util.ArrayList;
 import java.util.List;
@@ -43,13 +49,91 @@ public class SecurityDAOImpl implements SecurityDAO {
 	      stmt.executeUpdate(sql);
 	      System.out.println("Job Postings Table created successfully");
 	      
+	     
+	      
 	      stmt.close();
 	      c.close();
+	      load_data();
 	    } catch ( Exception e ) {
 	      System.err.println( e.getClass().getName() + ": " + e.getMessage() );
 	      System.out.println("Couldnt Set up database");
 	    }
 	    
+	}
+	
+	private void load_data() throws ClassNotFoundException, SQLException{
+		String csvFile = "cobalt_task.csv";
+		BufferedReader br = null;	
+		Connection c = null;
+		PreparedStatement stmt = null;
+		try {
+			br = new BufferedReader(new FileReader(csvFile));
+			String line = br.readLine();
+			Class.forName("org.sqlite.JDBC");
+			c = DriverManager.getConnection("jdbc:sqlite:rest.db");
+			while ((line = br.readLine()) != null) {
+				String[] tokens = line.split(",");
+				String name = tokens[0];
+				int cobaltRank = Integer.parseInt(tokens[1]);
+				Float cobaltReportQuality = Float.parseFloat(tokens[2]);
+				int cobaltRep = Integer.parseInt(tokens[3]);
+				String twitter = tokens[4];
+				String website = tokens[5];
+				String cobaltLink = tokens[6];
+				String education = tokens[7];
+				String email = tokens[8];
+				String experience = tokens[9];
+				String nationality = tokens[10];
+				String skills = tokens[11];
+				String github = tokens[12];
+				String linkedin = tokens[13];				
+				String sql = "INSERT INTO SECURITYEXPERTS (COBALTLINK,NAME,"
+						+ "EMAIL,NATIONALITY,EDUCATION,EXPERIENCE,SKILLS,LINKEDIN,"
+						+ "TWITTER,GITHUB,WEBSITE,COBALTRANK,COBALTREP,COBALTQUALITY) "
+						+ "VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?)"; 
+				stmt = c.prepareStatement(sql);
+				stmt.setString(1, cobaltLink);
+				stmt.setString(2, name);
+				stmt.setString(3, email);
+				stmt.setString(4, nationality);
+				stmt.setString(5, education);
+				stmt.setString(6, experience);
+				stmt.setString(7, skills);
+				stmt.setString(8, linkedin);
+				stmt.setString(9, twitter);
+				stmt.setString(10, github);
+				stmt.setString(11, website);
+				stmt.setInt(12, cobaltRank);
+				stmt.setInt(13, cobaltRep);
+				stmt.setFloat(14, cobaltReportQuality);
+				stmt.executeUpdate(sql);
+			}
+		} catch (FileNotFoundException e) {
+			e.printStackTrace();
+		} catch (IOException e) {
+			e.printStackTrace();
+		} finally {
+			if (br != null) {
+				try {
+					br.close();
+				} catch (IOException e) {
+					e.printStackTrace();
+				}
+			}
+			if (c != null) {
+				try {
+					c.close();
+				} catch (Exception e) {
+				}
+			}
+			if (stmt != null) {
+				try {
+					stmt.close();
+				} catch (Exception e) {
+				}
+			}
+		}
+
 	}
 	
 	@Override
