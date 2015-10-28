@@ -10,6 +10,8 @@ import java.sql.*;
 import java.util.ArrayList;
 import java.util.List;
 
+import javax.servlet.ServletContext;
+
 import au.edu.unsw.security.dao.SecurityDAO;
 import au.edu.unsw.security.model.Expert;
 
@@ -19,7 +21,7 @@ public class SecurityDAOImpl implements SecurityDAO {
 	}
 	
 	@Override
-	public void setUpDatabase () {
+	public void setUpDatabase (ServletContext context) {
 		Connection c = null;
 	    Statement stmt = null;
 	    try {
@@ -53,7 +55,7 @@ public class SecurityDAOImpl implements SecurityDAO {
 	      
 	      stmt.close();
 	      c.close();
-	      load_data();
+	      load_data(context);
 	    } catch ( Exception e ) {
 	      System.err.println( e.getClass().getName() + ": " + e.getMessage() );
 	      System.out.println("Couldnt Set up database");
@@ -61,8 +63,11 @@ public class SecurityDAOImpl implements SecurityDAO {
 	    
 	}
 	
-	private void load_data() throws ClassNotFoundException, SQLException{
-		String csvFile = "cobalt_task.csv";
+	private void load_data(ServletContext context) throws ClassNotFoundException, SQLException{
+		//String csvFile = "SecurityRest/resources/cobalt_task.csv";
+		String csvFile = context.getRealPath("WEB-INF/cobalt_task.csv");
+		//String csvFile = getClass().getResource("/resources/cobalt_task.csv").getPath();
+		System.out.println(csvFile);
 		BufferedReader br = null;	
 		Connection c = null;
 		PreparedStatement stmt = null;
@@ -72,6 +77,7 @@ public class SecurityDAOImpl implements SecurityDAO {
 			Class.forName("org.sqlite.JDBC");
 			c = DriverManager.getConnection("jdbc:sqlite:rest.db");
 			while ((line = br.readLine()) != null) {
+				System.out.println(line);
 				String[] tokens = line.split(",");
 				String name = tokens[0];
 				int cobaltRank = Integer.parseInt(tokens[1]);
@@ -106,7 +112,7 @@ public class SecurityDAOImpl implements SecurityDAO {
 				stmt.setInt(12, cobaltRank);
 				stmt.setInt(13, cobaltRep);
 				stmt.setFloat(14, cobaltReportQuality);
-				stmt.executeUpdate(sql);
+				stmt.executeUpdate();
 			}
 		} catch (FileNotFoundException e) {
 			e.printStackTrace();

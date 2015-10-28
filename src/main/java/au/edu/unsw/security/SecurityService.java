@@ -5,6 +5,7 @@ import java.net.URI;
 import java.net.URISyntaxException;
 import java.util.List;
 
+import javax.servlet.ServletContext;
 import javax.ws.rs.Consumes;
 import javax.ws.rs.DELETE;
 import javax.ws.rs.DefaultValue;
@@ -40,6 +41,8 @@ public class SecurityService {
 	UriInfo uriInfo;
 	@Context
 	Request request;
+	@Context
+	ServletContext context;
 	
 	/**
 	 * This is called to initially set up and initialize the database
@@ -49,8 +52,9 @@ public class SecurityService {
 	@Path("setUpDatabase")
 	public void setUpDatabase() {
 		SecurityDAO securityDAO = new SecurityDAOImpl();
-		securityDAO.setUpDatabase();
+		securityDAO.setUpDatabase(context);
 	}
+	
 	
 	/**
 	 * Retrieves all the security experts that are stored in the databases

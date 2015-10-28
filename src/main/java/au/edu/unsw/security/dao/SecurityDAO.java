@@ -2,6 +2,8 @@ package au.edu.unsw.security.dao;
 
 import java.util.List;
 
+import javax.servlet.ServletContext;
+
 import au.edu.unsw.security.model.Expert;
 
 /**
@@ -33,7 +35,7 @@ public interface SecurityDAO {
 	/**
 	 * Sets Up Database for use in the API
 	 */
-	void setUpDatabase();
+	void setUpDatabase(ServletContext context);
 	
 	/**
 	 * Inserts a new row of expert data into the database
