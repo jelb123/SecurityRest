@@ -55,7 +55,10 @@ public class SecurityDAOImpl implements SecurityDAO {
 	      
 	      stmt.close();
 	      c.close();
-	      load_data(context);
+	      if (getAllExperts().isEmpty()) {
+	    	  load_data(context);
+	    	  System.out.println("Added initial experts");
+	      }
 	    } catch ( Exception e ) {
 	      System.err.println( e.getClass().getName() + ": " + e.getMessage() );
 	      System.out.println("Couldnt Set up database");
